@@ -9,13 +9,14 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/wenlng/go-captcha/captcha"
 	"io"
 	"log"
 	"os"
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/maple-j/go-captcha/captcha"
 )
 
 // go test -race base.go captcha_test.go
