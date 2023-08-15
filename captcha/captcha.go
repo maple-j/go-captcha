@@ -8,9 +8,7 @@
 package captcha
 
 import (
-	"encoding/json"
 	"fmt"
-	"golang.org/x/image/font"
 	"image"
 	"image/color"
 	"io/ioutil"
@@ -19,6 +17,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/bytedance/sonic"
+	"golang.org/x/image/font"
 )
 
 // CharDot is a type
@@ -462,7 +463,7 @@ func (cc *Captcha) checkConfig() error {
 	}
 
 	// 验证颜色总和是否超出255个
-	if len(cc.config.rangThumbFontColors) + len(cc.config.rangThumbBgColors) >= 255 {
+	if len(cc.config.rangThumbFontColors)+len(cc.config.rangThumbBgColors) >= 255 {
 		return fmt.Errorf("CaptchaConfig Error: len(rangThumbBgColors + RangThumbBgColors) must be less than or equal to 255")
 	}
 
@@ -522,7 +523,7 @@ func (cc *Captcha) GenerateWithSize(imageSize Size, thumbnailSize Size) (map[int
 		return nil, "", "", "", err
 	}
 
-	str, _ := json.Marshal(checkDots)
+	str, _ := sonic.Marshal(checkDots)
 	key, _ := cc.genCaptchaKey(string(str))
 	return checkDots, imageBase64, tImageBase64, key, err
 }
@@ -535,12 +536,11 @@ func (cc *Captcha) GenerateWithSize(imageSize Size, thumbnailSize Size) (map[int
  * @return string
  */
 func (cc *Captcha) EncodeB64stringWithJpeg(img image.Image) string {
-	if cc.config.imageQuality <= QualityCompressLevel1 && cc.config.imageQuality >= QualityCompressLevel1{
+	if cc.config.imageQuality <= QualityCompressLevel1 && cc.config.imageQuality >= QualityCompressLevel1 {
 		return EncodeB64stringWithJpeg(img, cc.config.imageQuality)
 	}
 	return EncodeB64stringWithPng(img)
 }
-
 
 // EncodeB64string is a function
 /**
@@ -614,9 +614,9 @@ func (cc *Captcha) genDots(imageSize Size, fontSize RangeVal, chars string, padd
 		_w := width / len(strs)
 		rd := math.Abs(float64(_w) - float64(fontWidth))
 		x := (i * _w) + RandInt(0, int(math.Max(rd, 1)))
-		x = int(math.Min(math.Max(float64(x), 10), float64(width - 10 - (padding * 2))))
-		y := RandInt(10, height + fontHeight)
-		y = int(math.Min(math.Max(float64(y), float64(fontHeight + 10)), float64(height + (fontHeight / 2) - (padding * 2))))
+		x = int(math.Min(math.Max(float64(x), 10), float64(width-10-(padding*2))))
+		y := RandInt(10, height+fontHeight)
+		y = int(math.Min(math.Max(float64(y), float64(fontHeight+10)), float64(height+(fontHeight/2)-(padding*2))))
 		text := fmt.Sprintf("%s", str)
 
 		dot := CharDot{i, x, y, randFontSize, fontWidth, fontHeight, text, randAngle, randColor, randColor2}
@@ -672,24 +672,24 @@ func (cc *Captcha) genCaptchaImage(size Size, dots map[int]CharDot) (base64 stri
 			Size:    dot.Size,
 			Width:   dot.Width,
 			Height:  dot.Height,
-			Font:   cc.genRandWithString(cc.config.rangFont),
+			Font:    cc.genRandWithString(cc.config.rangFont),
 		}
 
 		drawDots = append(drawDots, drawDot)
 	}
 
 	img, err := cc.captchaDraw.Draw(DrawCanvas{
-		Width:             	size.Width,
-		Height:            	size.Height,
-		Background:        	cc.genRandWithString(cc.config.rangBackground),
-		BackgroundDistort: 	cc.getRandDistortWithLevel(cc.config.imageFontDistort),
-		TextAlpha:         	cc.config.imageFontAlpha,
-		FontHinting: 	   	cc.config.fontHinting,
-		CaptchaDrawDot:    	drawDots,
+		Width:             size.Width,
+		Height:            size.Height,
+		Background:        cc.genRandWithString(cc.config.rangBackground),
+		BackgroundDistort: cc.getRandDistortWithLevel(cc.config.imageFontDistort),
+		TextAlpha:         cc.config.imageFontAlpha,
+		FontHinting:       cc.config.fontHinting,
+		CaptchaDrawDot:    drawDots,
 
-		ShowTextShadow: 	cc.config.showTextShadow,
-		TextShadowColor: 	cc.config.textShadowColor,
-		TextShadowPoint: 	cc.config.textShadowPoint,
+		ShowTextShadow:  cc.config.showTextShadow,
+		TextShadowColor: cc.config.textShadowColor,
+		TextShadowPoint: cc.config.textShadowPoint,
 	})
 	if err != nil {
 		erro = err
@@ -714,8 +714,8 @@ func (cc *Captcha) genCaptchaThumbImage(size Size, dots map[int]CharDot) (string
 
 	fontWidth := size.Width / len(dots)
 	for i, dot := range dots {
-		Dx := int(math.Max(float64(fontWidth * i + fontWidth / dot.Width), 8))
-		Dy := size.Height / 2 + dot.Size/2 - rand.Intn(size.Height / 16 * len(dot.Text))
+		Dx := int(math.Max(float64(fontWidth*i+fontWidth/dot.Width), 8))
+		Dy := size.Height/2 + dot.Size/2 - rand.Intn(size.Height/16*len(dot.Text))
 
 		drawDot := DrawDot{
 			Dx:      Dx,
